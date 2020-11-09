@@ -70,9 +70,6 @@ boxes = [b[1] for b in chars]
 chars = np.array([c[0] for c in chars], dtype="float32")
 # OCR the characters using our handwriting recognition model
 
-model = load_model(
-    'C:/Users/utilisateur/Desktop/Projets/Nuage/src/model.h5')
-
 preds = model.predict(chars)
 # define the list of label names
 # labelNames = "0123456789"
