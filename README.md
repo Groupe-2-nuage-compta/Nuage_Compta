@@ -1,5 +1,3 @@
-# Nuage_Compta
-
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
