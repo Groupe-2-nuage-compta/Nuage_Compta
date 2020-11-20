@@ -1,17 +1,22 @@
-import tensorflow as tf
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
-from tensorflow.python.keras.utils import np_utils
-from tensorflow.keras.utils import to_categorical
+import os
+
+from IPython.display import SVG
 from tensorflow.keras.datasets.mnist import load_data
+from tensorflow.keras.utils import to_categorical
+from tensorflow.python.keras.utils import np_utils
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.models import Sequential, load_model
+import tensorflow as tf
+import random
+import numpy as np
 import matplotlib.pyplot as plt
 
-import os
-import numpy as np
 import cv2
 import imutils
 from imutils.contours import sort_contours
-import random
+import livelossplot
+plot_losses = livelossplot.PlotLossesKeras()
+
 
 random.seed(80)
 
@@ -19,14 +24,14 @@ random.seed(80)
 def create_train_data(DATADIR, IMG_SIZE, numbers=False):
 
     categories = ["A", "B", "C", "D", "E", "F", "G", "H",
-    "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-    "T", "Y", "V", "W", "X", "Y", "Z"]
+                  "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
+                  "T", "Y", "V", "W", "X", "Y", "Z"]
 
     train_data = []
     X = []
     y = []
 
-    #Recuperations des fichiers images et conversion
+    # Recuperations des fichiers images et conversion
     i = 0
     for category in categories:
         path = os.path.join(DATADIR, category)
@@ -34,17 +39,18 @@ def create_train_data(DATADIR, IMG_SIZE, numbers=False):
         file_list = os.listdir(path)
         random.shuffle(file_list)
         for file in file_list:
-            file_array = cv2.imread(os.path.join(path, file), cv2.IMREAD_GRAYSCALE)
+            file_array = cv2.imread(os.path.join(
+                path, file), cv2.IMREAD_GRAYSCALE)
             file_array = cv2.resize(file_array, (IMG_SIZE, IMG_SIZE))
             train_data.append([file_array, class_num])
             i += 1
             if i % 50000 == 0:
                 print(f"Chargement {i} fichiers lettres")
-    
-    #Si l'utilisateur choisit de créer un modèle avec les chiffres, les données de mnist seront ajoutées au modèle
+
+    # Si l'utilisateur choisit de créer un modèle avec les chiffres, les données de mnist seront ajoutées au modèle
     i = 0
-    if numbers == True :
-        (X_mnist, y_mnist),_ = load_data()
+    if numbers == True:
+        (X_mnist, y_mnist), _ = load_data()
         for number in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
             categories.append(number)
         number_list = []
@@ -55,31 +61,30 @@ def create_train_data(DATADIR, IMG_SIZE, numbers=False):
             if i % 5000 == 0:
                 print(f"Chargement {i} fichiers chiffres")
 
-    #Traitement final du dataset
+    # Traitement final du dataset
     random.shuffle(train_data)
     for feature, label in train_data:
         X.append(feature)
         y.append(label)
 
     X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
-    X = X /255.0
+    X = X / 255.0
     y = np.array(y)
-    y = to_categorical(y)   
+    y = to_categorical(y)
 
     return X, y, categories
-
 
 
 def create_and_train_model(X, y, outfile, categories):
     model = Sequential()
 
-    model.add(Conv2D(128, (5,5), input_shape = X.shape[1:]))
+    model.add(Conv2D(128, (5, 5), input_shape=X.shape[1:]))
     model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(3,3)))
+    model.add(MaxPooling2D(pool_size=(3, 3)))
 
-    model.add(Conv2D(32, (3,3)))
+    model.add(Conv2D(32, (3, 3)))
     model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     model.add(Activation("relu"))
@@ -87,13 +92,18 @@ def create_and_train_model(X, y, outfile, categories):
     model.add(Dense(len(categories)))
     model.add(Activation('softmax'))
 
-    model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=['accuracy'])
+    model.compile(loss="categorical_crossentropy",
+                  optimizer="adam", metrics=['accuracy'])
 
-    model.fit(X, y, batch_size=256, epochs=10, validation_split=0.25)
+    model.fit(X, y, batch_size=256, epochs=10,
+              validation_split=0.25, callbacks=[plot_losses])
 
     model.save(f'./data/OUTPUT/{outfile}')
 
     print("Model complete.")
+
+    SVG(model_to_dot(model).create(prog='dot', format='svg'))
+    # model.save('model_mnist.h5')
 
 
 def picture_analysis(image_path, model_path):
@@ -127,9 +137,9 @@ def picture_analysis(image_path, model_path):
             # extract the character and threshold it to make the character
             # appear as *white* (foreground) on a *black* background, then
             # grab the width and height of the thresholded image
-            roi = gray[y:y + h , x:x + w]
+            roi = gray[y:y + h, x:x + w]
             thresh = cv2.threshold(roi, 0, 255,
-                                cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+                                   cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             (tH, tW) = thresh.shape
             # if the width is greater than the height, resize along the
             # width dimension
@@ -158,7 +168,6 @@ def picture_analysis(image_path, model_path):
             #     # show the image
             # cv2.imshow("Image", padded)
             # cv2.waitKey(0)
-
 
     # extract the bounding box locations and padded characters
     boxes = [b[1] for b in chars]
