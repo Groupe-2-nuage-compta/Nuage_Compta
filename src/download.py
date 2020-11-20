@@ -17,11 +17,11 @@ class downloader():
             data_path (str): chemin relatif vers le dossier qui accueillera les données 
         """
         self.data_path = data_path
-        if not os.path.exists(self.data_path + f"/CURATED"):
-            os.makedirs(self.data_path + f"/CURATED")
         if not os.path.exists(self.data_path + f"/RAW"):
             os.makedirs(self.data_path + f"/RAW")
         if not os.path.exists(self.data_path + f"/OUTPUT"):
+            os.makedirs(self.data_path + f"/OUTPUT")
+        if not os.path.exists(self.data_path + f"/images"):
             os.makedirs(self.data_path + f"/OUTPUT")
 
     def data_download(self, file_name, download_url):

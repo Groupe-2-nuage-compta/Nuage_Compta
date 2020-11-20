@@ -1,5 +1,5 @@
 import os
-
+from PIL import Image
 from IPython.display import SVG
 from tensorflow.keras.datasets.mnist import load_data
 from tensorflow.keras.utils import to_categorical
@@ -10,7 +10,8 @@ import tensorflow as tf
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-
+from pdf2image import convert_from_path 
+import pytesseract
 import cv2
 import imutils
 from imutils.contours import sort_contours
@@ -99,11 +100,9 @@ def create_and_train_model(X, y, outfile, categories):
               validation_split=0.25, callbacks=[plot_losses])
 
     model.save(f'./data/OUTPUT/{outfile}')
+    model.summary()
 
     print("Model complete.")
-
-    SVG(model_to_dot(model).create(prog='dot', format='svg'))
-    # model.save('model_mnist.h5')
 
 
 def picture_analysis(image_path, model_path):
@@ -194,3 +193,79 @@ def picture_analysis(image_path, model_path):
 
     # show the image
     plt.imshow(image)
+
+
+def ocr_core(filename):
+    """
+    This function will handle the core OCR processing of images.
+    """
+    text = pytesseract.image_to_string(Image.open(filename))  # We'll use Pillow's Image class to open the image and pytesseract to detect the string in the image
+    return text
+
+def convert_and_read_pdf(PDF_file, tesseract_path):
+    # Store all the pages of the PDF in a variable 
+    pages = convert_from_path(PDF_file, 500) 
+    
+    # Counter to store images of each page of PDF to image 
+    image_counter = 1
+    
+    # Iterate through all the pages stored above 
+    for page in pages: 
+        # Declaring filename for each page of PDF as JPG 
+        # For each page, filename will be: 
+        # PDF page 1 -> page_1.jpg 
+        # PDF page 2 -> page_2.jpg 
+        # PDF page 3 -> page_3.jpg 
+        # .... 
+        # PDF page n -> page_n.jpg 
+        filename = "./data/images/page_"+str(image_counter)+".jpg"
+        
+        # Save the image of the page in system 
+        page.save(filename, 'JPEG') 
+    
+        # Increment the counter to update filename 
+        image_counter = image_counter + 1
+    
+        # Variable to get count of total number of pages 
+    filelimit = image_counter-1
+    
+    # Creating a text file to write the output 
+    outfile = "./data/images/out_text.txt"
+    
+    # Open the file in append mode so that  
+    # All contents of all images are added to the same file 
+    f = open(outfile, "w") 
+
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path  
+    # Iterate from 1 to total number of pages 
+    for i in range(1, filelimit + 1): 
+    
+        # Set filename to recognize text from 
+        # Again, these files will be: 
+        # page_1.jpg 
+        # page_2.jpg 
+        # .... 
+        # page_n.jpg 
+        filename = "./data/images/page_"+str(i)+".jpg"
+            
+        # Recognize the text as string in image using pytesseract
+        text = str(((pytesseract.image_to_string(Image.open(filename))))) 
+    
+        # The recognized text is stored in variable text 
+        # Any string processing may be applied on text 
+        # Here, basic formatting has been done: 
+        # In many PDFs, at line ending, if a word can't 
+        # be written fully, a 'hyphen' is added. 
+        # The rest of the word is written in the next line 
+        # Eg: This is a sample text this word here GeeksF- 
+        # orGeeks is half on first line, remaining on next. 
+        # To remove this, we replace every '-\n' to ''. 
+        text = text.replace('-\n', '')     
+    
+        # Finally, write the processed text to the file. 
+        f.write(text) 
+
+        print(text)
+    
+    # Close the file after writing all the text. 
+    f.close()
