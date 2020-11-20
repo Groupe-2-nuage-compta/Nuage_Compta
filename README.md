@@ -44,7 +44,7 @@ To get a local copy up and running follow these simple steps.
     ```
  3.  Install Poppler and add it to PATH
  
- 4. Install Tesseract using compiled binary file (change tesseract_path in bonus 2)
+ 4. Install Tesseract using compiled binary file (change tesseract_path in bonus 2).
 
 <!-- USAGE EXAMPLES -->
 ## Usage
