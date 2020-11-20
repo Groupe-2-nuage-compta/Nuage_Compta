@@ -48,5 +48,5 @@ To get a local copy up and running follow these simple steps.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-* Run notebook.ipynb (it might take a while)
+* Run [notebook.ipynb](https://github.com/Groupe-2-nuage-compta/Nuage_Compta/blob/main/notebook.ipynb) (it might take a while)
 You may use your own images (in that case change image_path variable).
