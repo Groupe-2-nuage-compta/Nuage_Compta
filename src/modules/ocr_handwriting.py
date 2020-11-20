@@ -12,10 +12,13 @@ model = load_model(
 # it to reduce noise
 image = cv2.imread(imagePath)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-# perform edge detection, find contours in the edge map, and sort the
-# resulting contours from left-to-right
-edged = cv2.Canny(blurred, 30, 150)
+
+blurred = gray
+# blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+blurred = cv2.medianBlur(gray, 5)
+
+edged = cv2.Canny(blurred, 170, 255)
 cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
                         cv2.CHAIN_APPROX_SIMPLE)
 cnts = imutils.grab_contours(cnts)
@@ -48,16 +51,17 @@ for c in cnts:
 
         # re-grab the image dimensions (now that its been resized)
         # and then determine how much we need to pad the width and
-        # height such that our image will be 32x32
+        # height such that our image will be 28x28
         (tH, tW) = thresh.shape
-        dX = int(max(0, 32 - tW) / 2.0)
-        dY = int(max(0, 32 - tH) / 2.0)
-        # pad the image and force 32x32 dimensions
+        dX = int(max(0, 28 - tW) / 2.0)
+        dY = int(max(0, 28 - tH) / 2.0)
+
+        # pad the image and force 28x28 dimensions
         padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
                                     left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
                                     value=(0, 0, 0))
         padded = cv2.resize(padded, (28, 28))
-        # padded = transform.resize(padded, (28, 28, 1))
+
         # prepare the padded image for classification via our
         # handwriting OCR model
         padded = padded.astype("float32") / 255.0
