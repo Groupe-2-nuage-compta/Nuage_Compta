@@ -42,8 +42,11 @@ To get a local copy up and running follow these simple steps.
     ```sh
     conda create --name <env> --file requirements.txt
     ```
+ 3.  Install Poppler and add it to PATH
+ 
+ 4. Install Tesseract using compiled binary file (change tesseract_path in bonus 2)
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-* Run nuage.ipynb
-
+* Run notebook.ipynb (it might take a while)
+You may use your own images (in that case change image_path variable).
